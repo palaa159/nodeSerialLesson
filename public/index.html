@@ -1,0 +1,61 @@
+<html>
+	<head>
+		<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
+	</head>
+	<body>
+		<h1>Hello Arduino</h1>
+		<h4>switching LED</h4>
+		<button id="toggleLED" style="font-size: 1.2em; font-weight: 100;width: 100px; height: 100px; border-radius: 50%; background: white">ON/OFF</button>
+		
+		<h4>receiving potmeter value</h4>
+		<div id="pot" style="display:block; height: 25px; background: red"></div>
+		<br><br>
+		<div id="slider"></div>
+
+		<script src="http://localhost:9001/socket.io/socket.io.js"></script>
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+		<script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+		<script>
+			var socket = io.connect('http://localhost:9001');
+			var isOn = false;
+			$('#toggleLED').click(function() {
+				if(isOn == false) {
+					isOn = true;
+					$(this).css({
+						background: 'yellow'
+					});
+					// send signal
+					socket.emit('led', true);
+				} else if(isOn == true) {
+					isOn = false;
+					$(this).css({
+						background: 'white'
+					});
+					// send signal
+					socket.emit('led', false);
+				}
+			});
+
+			socket.on('pot', function(data) {
+				$('#pot').animate({
+					'width': data
+				}, 50);
+			});
+
+			// 
+			var sliderData;
+			    $( "#slider" ).slider({
+			    	slide: function( event, ui ) {
+			          sliderData = parseInt(map_range(ui.value, 0, 100, 0, 1023));
+			          console.log(sliderData);
+			          socket.emit('slider', sliderData);
+			       }
+			    });
+
+			function map_range(value, low1, high1, low2, high2) {
+			    return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
+			}
+
+		</script>
+	</body>
+</html>
